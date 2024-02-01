@@ -21,26 +21,12 @@ type extensionFieldInfo struct {
 	validation          validationInfo
 }
 
-var legacyExtensionFieldInfoCache sync.Map // map[protoreflect.ExtensionType]*extensionFieldInfo
-
 func getExtensionFieldInfo(xt protoreflect.ExtensionType) *extensionFieldInfo {
 	if xi, ok := xt.(*ExtensionInfo); ok {
 		xi.lazyInit()
 		return xi.info
 	}
-	return legacyLoadExtensionFieldInfo(xt)
-}
-
-// legacyLoadExtensionFieldInfo dynamically loads a *ExtensionInfo for xt.
-func legacyLoadExtensionFieldInfo(xt protoreflect.ExtensionType) *extensionFieldInfo {
-	if xi, ok := legacyExtensionFieldInfoCache.Load(xt); ok {
-		return xi.(*extensionFieldInfo)
-	}
-	e := makeExtensionFieldInfo(xt.TypeDescriptor())
-	if e, ok := legacyMessageTypeCache.LoadOrStore(xt, e); ok {
-		return e.(*extensionFieldInfo)
-	}
-	return e
+	return makeExtensionFieldInfo(xt.TypeDescriptor())
 }
 
 func makeExtensionFieldInfo(xd protoreflect.ExtensionDescriptor) *extensionFieldInfo {
